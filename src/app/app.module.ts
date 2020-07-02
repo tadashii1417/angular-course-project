@@ -21,6 +21,9 @@ import {LoadingSpinnerComponent} from "./shared/loading-spinner/loading-spinner.
 import {AuthInterceptorService} from "./auth/auth-interceptor.service";
 import {StoreModule} from "@ngrx/store";
 import {shoppingListReducer} from "./shopping-list/store/shopping-list.reducer";
+import {authReducer} from "./auth/store/auth.reducer";
+
+import * as fromApp from "./store/app.reducer";
 
 @NgModule({
   declarations: [
@@ -44,7 +47,7 @@ import {shoppingListReducer} from "./shopping-list/store/shopping-list.reducer";
     FormsModule,
     ReactiveFormsModule,
     HttpClientModule,
-    StoreModule.forRoot({shoppingList: shoppingListReducer})
+    StoreModule.forRoot(fromApp.appReducer)
   ],
   providers: [RecipeService, {
     provide: HTTP_INTERCEPTORS,
