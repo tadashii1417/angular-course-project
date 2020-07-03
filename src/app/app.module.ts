@@ -20,10 +20,10 @@ import {AuthComponent} from './auth/auth.component';
 import {LoadingSpinnerComponent} from "./shared/loading-spinner/loading-spinner.component";
 import {AuthInterceptorService} from "./auth/auth-interceptor.service";
 import {StoreModule} from "@ngrx/store";
-import {shoppingListReducer} from "./shopping-list/store/shopping-list.reducer";
-import {authReducer} from "./auth/store/auth.reducer";
+import {EffectsModule} from "@ngrx/effects";
 
 import * as fromApp from "./store/app.reducer";
+import {AuthEffects} from "./auth/store/auth.effects";
 
 @NgModule({
   declarations: [
@@ -47,7 +47,8 @@ import * as fromApp from "./store/app.reducer";
     FormsModule,
     ReactiveFormsModule,
     HttpClientModule,
-    StoreModule.forRoot(fromApp.appReducer)
+    StoreModule.forRoot(fromApp.appReducer),
+    EffectsModule.forRoot([AuthEffects])
   ],
   providers: [RecipeService, {
     provide: HTTP_INTERCEPTORS,
