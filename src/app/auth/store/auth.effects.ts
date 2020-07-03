@@ -172,7 +172,7 @@ export class AuthEffects {
 }
 
 
-// TODO: tap not return anything, map return an observerable
+// TODO: tap not return anything, map return an observable
 
 
 

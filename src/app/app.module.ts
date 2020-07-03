@@ -24,6 +24,8 @@ import {EffectsModule} from "@ngrx/effects";
 
 import * as fromApp from "./store/app.reducer";
 import {AuthEffects} from "./auth/store/auth.effects";
+import {StoreDevtoolsModule} from "@ngrx/store-devtools";
+import {StoreRouterConnectingModule} from "@ngrx/router-store";
 
 @NgModule({
   declarations: [
@@ -48,7 +50,10 @@ import {AuthEffects} from "./auth/store/auth.effects";
     ReactiveFormsModule,
     HttpClientModule,
     StoreModule.forRoot(fromApp.appReducer),
-    EffectsModule.forRoot([AuthEffects])
+    EffectsModule.forRoot([AuthEffects]),
+    // TODO: setting environment variable !
+    StoreDevtoolsModule.instrument({logOnly: true}),
+    StoreRouterConnectingModule.forRoot()
   ],
   providers: [RecipeService, {
     provide: HTTP_INTERCEPTORS,
