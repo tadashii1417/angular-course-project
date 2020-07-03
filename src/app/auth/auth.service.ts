@@ -4,7 +4,10 @@ import {catchError, tap} from "rxjs/operators";
 import {BehaviorSubject, throwError} from "rxjs";
 import {User} from "./user.model";
 import {Router} from "@angular/router";
+import {Store} from "@ngrx/store";
 
+import * as fromApp from "../store/app.reducer";
+import * as AuthActions from "./store/auth.actions";
 
 export interface AuthResponseData {
   idToken: string,
@@ -19,12 +22,12 @@ export interface AuthResponseData {
   providedIn: 'root'
 })
 export class AuthService {
-  user = new BehaviorSubject<User>(null);
+  // user = new BehaviorSubject<User>(null);
   private tokenExpirationTimer: any;
 
   apiKey = 'AIzaSyCAOyDlccMc-zYoAcp8zBBG_Thb3O1Jd-Y';
 
-  constructor(private http: HttpClient, private router: Router) {
+  constructor(private http: HttpClient, private router: Router, private store: Store<fromApp.AppState>) {
   }
 
   private handleError(errorResponse: HttpErrorResponse) {
@@ -61,7 +64,13 @@ export class AuthService {
       expirationDate
     );
     localStorage.setItem('userData', JSON.stringify(user));
-    this.user.next(user);
+    // this.user.next(user);
+    this.store.dispatch(new AuthActions.Login({
+      email: email,
+      userId: localId,
+      token: idToken,
+      expirationDate: expirationDate
+    }));
     this.autoLogout(+expiresIn * 1000);
   }
 
@@ -102,12 +111,16 @@ export class AuthService {
   }
 
   logout() {
-    this.user.next(null);
+    // this.user.next(null);
+    this.store.dispatch(new AuthActions.Logout());
+
     this.router.navigate(['/auth']);
     localStorage.removeItem('userData');
-    if (this.tokenExpirationTimer) {
-      this.tokenExpirationTimer.clearTimeout(this.tokenExpirationTimer);
-    }
+
+    // if (this.tokenExpirationTimer) {
+    //   console.log(this.tokenExpirationTimer);
+    //   this.tokenExpirationTimer.clearTimeout(this.tokenExpirationTimer);
+    // }
     this.tokenExpirationTimer = null;
   }
 
@@ -126,9 +139,31 @@ export class AuthService {
     const loadedUser = new User(email, id, _token, new Date(_tokenExpirationDate));
 
     if (loadedUser.token) {
-      this.user.next(loadedUser);
+      // this.user.next(loadedUser);
+
+      this.store.dispatch(new AuthActions.Login({
+        email: email,
+        userId: id,
+        token: _token,
+        expirationDate: new Date(_tokenExpirationDate)
+      }));
       const expirationDuration = new Date(_tokenExpirationDate).getTime() - new Date().getTime();
       this.autoLogout(expirationDuration);
     }
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
