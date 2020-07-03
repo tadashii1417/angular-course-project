@@ -22,135 +22,25 @@ export interface AuthResponseData {
   providedIn: 'root'
 })
 export class AuthService {
-  // user = new BehaviorSubject<User>(null);
+  // TODO: what is BehaviorSubject
   private tokenExpirationTimer: any;
-
-  apiKey = 'AIzaSyCAOyDlccMc-zYoAcp8zBBG_Thb3O1Jd-Y';
 
   constructor(private http: HttpClient, private router: Router, private store: Store<fromApp.AppState>) {
   }
 
-  private handleError(errorResponse: HttpErrorResponse) {
-    let errorMessage = "Something went wrong";
-    if (!errorResponse.error || !errorResponse.error.error) {
-      return throwError(errorMessage);
-    }
-    switch (errorResponse.error.error.message) {
-      case 'EMAIL_EXISTS':
-        errorMessage = "This email exists already";
-        break;
-      case 'EMAIL_NOT_FOUND':
-        errorMessage = "This email not exists";
-        break;
-      case 'INVALID_PASSWORD':
-        errorMessage = "Password is not correct";
-        break;
-      case 'USER_DISABLED':
-        errorMessage = "This is user is disabled";
-        break;
-      default:
-        errorMessage = "I don't know."
-    }
-
-    return throwError(errorMessage);
-  }
-
-  private handleAuthentication(email, localId, idToken, expiresIn) {
-    const expirationDate = new Date(new Date().getTime() + 1000 * +expiresIn);
-    const user = new User(
-      email,
-      localId,
-      idToken,
-      expirationDate
-    );
-    localStorage.setItem('userData', JSON.stringify(user));
-    // this.user.next(user);
-    this.store.dispatch(new AuthActions.Login({
-      email: email,
-      userId: localId,
-      token: idToken,
-      expirationDate: expirationDate
-    }));
-    this.autoLogout(+expiresIn * 1000);
-  }
-
-  signup(email, password) {
-    return this.http
-      .post<AuthResponseData>(
-        `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${this.apiKey}`,
-        {
-          email, password, returnSecureToken: true
-        })
-      .pipe(
-        catchError(this.handleError),
-        tap((resData) =>
-          this.handleAuthentication(
-            resData.email,
-            resData.localId,
-            resData.idToken,
-            resData.expiresIn
-          )
-        ))
-  }
-
-  login(email, password) {
-    return this.http
-      .post<AuthResponseData>(
-        `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${this.apiKey}`,
-        {email, password, returnSecureToken: true})
-      .pipe(
-        catchError(this.handleError),
-        tap((resData) =>
-          this.handleAuthentication(
-            resData.email,
-            resData.localId,
-            resData.idToken,
-            resData.expiresIn
-          )
-        ))
-  }
-
-  logout() {
-    // this.user.next(null);
-    this.store.dispatch(new AuthActions.Logout());
-
-    this.router.navigate(['/auth']);
-    localStorage.removeItem('userData');
-
-    // if (this.tokenExpirationTimer) {
-    //   console.log(this.tokenExpirationTimer);
-    //   this.tokenExpirationTimer.clearTimeout(this.tokenExpirationTimer);
-    // }
-    this.tokenExpirationTimer = null;
-  }
-
-  autoLogout(expirationDuration: number) {
+  setLogoutTimer(expirationDuration: number) {
     this.tokenExpirationTimer = setTimeout(() => {
-      this.logout();
+      this.store.dispatch(new AuthActions.Logout())
     }, expirationDuration);
   }
 
-  autoLogin() {
-    const userData = JSON.parse(localStorage.getItem('userData'));
-    if (!userData) {
-      return;
-    }
-    const {email, id, _token, _tokenExpirationDate} = userData;
-    const loadedUser = new User(email, id, _token, new Date(_tokenExpirationDate));
-
-    if (loadedUser.token) {
-      // this.user.next(loadedUser);
-
-      this.store.dispatch(new AuthActions.Login({
-        email: email,
-        userId: id,
-        token: _token,
-        expirationDate: new Date(_tokenExpirationDate)
-      }));
-      const expirationDuration = new Date(_tokenExpirationDate).getTime() - new Date().getTime();
-      this.autoLogout(expirationDuration);
+  clearLogoutTimer() {
+    if (this.tokenExpirationTimer) {
+      clearTimeout(this.tokenExpirationTimer);
+      this.tokenExpirationTimer = null;
     }
   }
+
 }
 
 
